@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc 
+		http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd
+		http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/tx 
+		http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+		http://www.springframework.org/schema/aop 
+		http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+		http://www.springframework.org/schema/context 
+		http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+<!-- 	<context:property-placeholder location="classpath:config/jdbc.properties"/>   -->
+	
+	<!-- Root Context: defines shared resources visible to all other web components -->
+	<!-- 数据源 begin -->
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource"
+		destroy-method="close">
+		<property name="driverClassName" value="oracle.jdbc.driver.OracleDriver" />
+		<property name="url" value="jdbc:oracle:thin:@127.0.0.1:1521:xe" />
+		<property name="username" value="ORABOBO" />
+		<property name="password" value="bobo" />
+		<property name="maxActive" value="150" />
+		<property name="minIdle" value="5" />
+		<property name="maxIdle" value="20" />
+		<property name="initialSize" value="30" />
+		<property name="logAbandoned" value="true" />
+		<property name="removeAbandoned" value="true" />
+		<property name="removeAbandonedTimeout" value="10" />
+		<property name="maxWait" value="1000" />
+		<property name="timeBetweenEvictionRunsMillis" value="10000" />
+		<property name="numTestsPerEvictionRun" value="10" />
+		<property name="minEvictableIdleTimeMillis" value="10000" />
+	</bean>
+	<!-- 数据源 begin end -->
+
+	<!-- 显示sql begin -->
+	<bean class="com.p6spy.engine.spy.P6DataSource">
+		<constructor-arg>
+			<ref local="dataSource" />
+		</constructor-arg>
+	</bean>
+	<!-- 显示sql end -->
+
+	<!-- 数据库事务配置 begin -->
+	<bean id="transactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+
+	<aop:config>
+		<aop:advisor pointcut="execution(* main.java.com.bobo.pmp.module.*.*(..))"
+			advice-ref="txAdvice" />
+	</aop:config>
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="get*" read-only="true" />
+			<tx:method name="query*" read-only="true" />
+			<tx:method name="find*" read-only="true" />
+			<tx:method name="load*" read-only="true" />
+			<tx:method name="select*" read-only="true" />
+			<tx:method name="*" propagation="REQUIRED" rollback-for="Exception" />
+		</tx:attributes>
+	</tx:advice>
+	<!-- 数据库事务配置 end -->
+
+
+	<!-- 扫描 MyBatis Sql文件 begin -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="mapperLocations" value="classpath*:main/java/com/bobo/pmp/**/*Mapper.xml" />
+	</bean>
+	<!-- 扫描 MyBatis Sql文件 end -->
+
+	<!-- 扫描dao生成mapper.java begin -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer"
+		autowire="byName">
+		<property name="basePackage" value="main.java.com.bobo.pmp.*.*.dao" />
+		<property name="sqlSessionFactory" ref="sqlSessionFactory" />
+	</bean>
+	
+</beans>

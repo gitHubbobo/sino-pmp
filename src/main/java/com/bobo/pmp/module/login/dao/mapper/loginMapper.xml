@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"     "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="main.java.com.bobo.pmp.module.login.dao.ILoginDao">	 
+	 <select id="getUserMessage"  parameterType="main.java.com.bobo.pmp.module.login.dto.LoginUser" resultType="main.java.com.bobo.pmp.vo.User">        
+	 		<![CDATA[ select USERNAME AS userName
+	 		 				,PASSWORD AS passWord
+	 		 		  from T_user where 1=1 ]]> 
+	 		and username = #{userName} 
+	 		and password = #{passWord}
+	 </select>
+</mapper>
